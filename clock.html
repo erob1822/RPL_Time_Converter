@@ -52,16 +52,7 @@
 <div class="container">
     <label for="timezone">Select Timezone:</label>
     <select id="timezone">
-        <option value="UTC">UTC</option>
-        <option value="America/New_York">America/New_York</option>
-        <option value="Europe/London">Europe/London</option>
-        <option value="Asia/Tokyo">Asia/Tokyo</option>
-        <option value="Australia/Sydney">Australia/Sydney</option>
-        <option value="Europe/Paris">Europe/Paris</option>
-        <option value="America/Los_Angeles">America/Los_Angeles</option>
-        <option value="Asia/Kolkata">Asia/Kolkata</option>
-        <option value="America/Chicago">America/Chicago</option>
-        <option value="Europe/Berlin">Europe/Berlin</option>
+        <option value="">Loading timezones…</option>
     </select>
     <table>
         <tr>
@@ -73,9 +64,23 @@
             <th>UTC</th>
             <td id="utcClock"></td>
             <td>
-                <div style="display:flex;gap:8px;justify-content:center;align-items:center;">
-                    <input type="date" id="targetUtcDate">
-                    <input type="time" id="targetUtcTime" step="1" placeholder="HH:MM:SS" inputmode="numeric">
+                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetUtcDate" style="font-size:0.85em;margin-bottom:4px;">Date</label>
+                        <input type="date" id="targetUtcDate">
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetUtcHour" style="font-size:0.85em;margin-bottom:4px;">Hour</label>
+                        <select id="targetUtcHour" class="target"></select>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetUtcMinute" style="font-size:0.85em;margin-bottom:4px;">Minute</label>
+                        <select id="targetUtcMinute" class="target"></select>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetUtcSecond" style="font-size:0.85em;margin-bottom:4px;">Second</label>
+                        <select id="targetUtcSecond" class="target"></select>
+                    </div>
                 </div>
             </td>
         </tr>
@@ -83,9 +88,23 @@
             <th>Local</th>
             <td id="localClock"></td>
             <td>
-                <div style="display:flex;gap:8px;justify-content:center;align-items:center;">
-                    <input type="date" id="targetLocalDate">
-                    <input type="time" id="targetLocalTime" step="1" placeholder="HH:MM:SS" inputmode="numeric">
+                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetLocalDate" style="font-size:0.85em;margin-bottom:4px;">Date</label>
+                        <input type="date" id="targetLocalDate">
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetLocalHour" style="font-size:0.85em;margin-bottom:4px;">Hour</label>
+                        <select id="targetLocalHour" class="target"></select>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetLocalMinute" style="font-size:0.85em;margin-bottom:4px;">Minute</label>
+                        <select id="targetLocalMinute" class="target"></select>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetLocalSecond" style="font-size:0.85em;margin-bottom:4px;">Second</label>
+                        <select id="targetLocalSecond" class="target"></select>
+                    </div>
                 </div>
             </td>
         </tr>
@@ -427,9 +446,13 @@
     const localClock = document.getElementById('localClock');
     // target inputs separated into date + time for explicit 24-hour (military) input
     const targetUtcDate = document.getElementById('targetUtcDate');
-    const targetUtcTime = document.getElementById('targetUtcTime');
+    const targetUtcHour = document.getElementById('targetUtcHour');
+    const targetUtcMinute = document.getElementById('targetUtcMinute');
+    const targetUtcSecond = document.getElementById('targetUtcSecond');
     const targetLocalDate = document.getElementById('targetLocalDate');
-    const targetLocalTime = document.getElementById('targetLocalTime');
+    const targetLocalHour = document.getElementById('targetLocalHour');
+    const targetLocalMinute = document.getElementById('targetLocalMinute');
+    const targetLocalSecond = document.getElementById('targetLocalSecond');
     const utcToTarget = document.getElementById('utcToTarget');
 
     // Helper: pad to 2 digits
@@ -517,9 +540,8 @@
 
     // Set UTC target from the UTC date/time inputs
     function setUtcFromInputs() {
-        if (targetUtcDate.value && targetUtcTime.value) {
-            let t = targetUtcTime.value;
-            if (t.length === 5) t += ':00';
+        if (targetUtcDate.value && (targetUtcHour.value !== '' && targetUtcMinute.value !== '' && targetUtcSecond.value !== '')) {
+            const t = pad(parseInt(targetUtcHour.value, 10)) + ':' + pad(parseInt(targetUtcMinute.value, 10)) + ':' + pad(parseInt(targetUtcSecond.value, 10));
             const iso = targetUtcDate.value + 'T' + t + 'Z';
             const utcDate = new Date(iso);
             if (!isNaN(utcDate)) {
@@ -528,22 +550,25 @@
                 const tz = timezoneSelect.value;
                 const p = partsForDateInTimezone(utcDate, tz);
                 targetLocalDate.value = p.year + '-' + pad(p.month) + '-' + pad(p.day);
-                targetLocalTime.value = pad(p.hour) + ':' + pad(p.minute) + ':' + pad(p.second);
+                targetLocalHour.value = pad(p.hour);
+                targetLocalMinute.value = pad(p.minute);
+                targetLocalSecond.value = pad(p.second);
                 lastTargetLocal = utcDate;
             }
         } else {
             lastTargetUtc = null;
             targetLocalDate.value = '';
-            targetLocalTime.value = '';
+            targetLocalHour.value = '';
+            targetLocalMinute.value = '';
+            targetLocalSecond.value = '';
             lastTargetLocal = null;
         }
     }
 
     // Set UTC target when user edits the local date/time inputs (interpreted in selected timezone)
     function setLocalFromInputs() {
-        if (targetLocalDate.value && targetLocalTime.value) {
-            let t = targetLocalTime.value;
-            if (t.length === 5) t += ':00';
+        if (targetLocalDate.value && (targetLocalHour.value !== '' && targetLocalMinute.value !== '' && targetLocalSecond.value !== '')) {
+            const t = pad(parseInt(targetLocalHour.value, 10)) + ':' + pad(parseInt(targetLocalMinute.value, 10)) + ':' + pad(parseInt(targetLocalSecond.value, 10));
             const wall = targetLocalDate.value + 'T' + t;
             const tz = timezoneSelect.value;
             const utcDate = wallTimeInTimezoneToUTC(wall, tz);
@@ -551,22 +576,30 @@
                 lastTargetUtc = utcDate;
                 // populate UTC inputs (use UTC components)
                 targetUtcDate.value = utcDate.getUTCFullYear() + '-' + pad(utcDate.getUTCMonth()+1) + '-' + pad(utcDate.getUTCDate());
-                targetUtcTime.value = pad(utcDate.getUTCHours()) + ':' + pad(utcDate.getUTCMinutes()) + ':' + pad(utcDate.getUTCSeconds());
+                targetUtcHour.value = pad(utcDate.getUTCHours());
+                targetUtcMinute.value = pad(utcDate.getUTCMinutes());
+                targetUtcSecond.value = pad(utcDate.getUTCSeconds());
                 lastTargetLocal = utcDate;
             }
         } else {
             lastTargetLocal = null;
             targetUtcDate.value = '';
-            targetUtcTime.value = '';
+            targetUtcHour.value = '';
+            targetUtcMinute.value = '';
+            targetUtcSecond.value = '';
             lastTargetUtc = null;
         }
     }
 
-    // Wire inputs: when either date or time parts change, update the canonical target
+    // Wire inputs: when either date or hour/minute/second parts change, update the canonical target
     targetUtcDate.addEventListener('change', setUtcFromInputs);
-    targetUtcTime.addEventListener('change', setUtcFromInputs);
+    targetUtcHour.addEventListener('change', setUtcFromInputs);
+    targetUtcMinute.addEventListener('change', setUtcFromInputs);
+    targetUtcSecond.addEventListener('change', setUtcFromInputs);
     targetLocalDate.addEventListener('change', setLocalFromInputs);
-    targetLocalTime.addEventListener('change', setLocalFromInputs);
+    targetLocalHour.addEventListener('change', setLocalFromInputs);
+    targetLocalMinute.addEventListener('change', setLocalFromInputs);
+    targetLocalSecond.addEventListener('change', setLocalFromInputs);
 
     timezoneSelect.addEventListener('change', function() {
         // When timezone changes, recompute local inputs from lastTargetUtc
@@ -574,7 +607,9 @@
             const tz = timezoneSelect.value;
             const p = partsForDateInTimezone(lastTargetUtc, tz);
             targetLocalDate.value = p.year + '-' + pad(p.month) + '-' + pad(p.day);
-            targetLocalTime.value = pad(p.hour) + ':' + pad(p.minute) + ':' + pad(p.second);
+            targetLocalHour.value = pad(p.hour);
+            targetLocalMinute.value = pad(p.minute);
+            targetLocalSecond.value = pad(p.second);
             lastTargetLocal = lastTargetUtc;
         }
         updateClocks();
@@ -585,6 +620,131 @@
         if (!date) return '';
         return date.getUTCFullYear() + '-' + pad(date.getUTCMonth()+1) + '-' + pad(date.getUTCDate()) + ' ' + pad(date.getUTCHours()) + ':' + pad(date.getUTCMinutes()) + ':' + pad(date.getUTCSeconds());
     }
+
+    // Populate hour and minute selects with options (24-hour / 0-59)
+    function populateTimeSelects() {
+        const hrs = Array.from({length:24}, (_,i) => i);
+        const mins = Array.from({length:60}, (_,i) => i);
+        const secs = Array.from({length:60}, (_,i) => i);
+        hrs.forEach(h => { const opt = document.createElement('option'); opt.value = pad(h); opt.text = pad(h); targetUtcHour.appendChild(opt); targetLocalHour.appendChild(opt.cloneNode(true)); });
+        mins.forEach(m => { const opt = document.createElement('option'); opt.value = pad(m); opt.text = pad(m); targetUtcMinute.appendChild(opt); targetLocalMinute.appendChild(opt.cloneNode(true)); });
+        secs.forEach(s => { const opt = document.createElement('option'); opt.value = pad(s); opt.text = pad(s); targetUtcSecond.appendChild(opt); targetLocalSecond.appendChild(opt.cloneNode(true)); });
+    }
+
+    // call once
+    populateTimeSelects();
+
+    // --- timezone labels: compute offset (minutes) for a timezone at a given instant ---
+    function getTzOffsetMinutes(tz, date = new Date()) {
+        // Format the instant in the target timezone and compare to the UTC instant
+        const dtf = new Intl.DateTimeFormat('en-GB', {
+            timeZone: tz,
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        });
+        const parts = dtf.formatToParts(date);
+        const get = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
+        const wallUtcMs = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
+        return Math.round((wallUtcMs - date.getTime()) / 60000);
+    }
+
+    function formatOffset(mins) {
+        const sign = mins >= 0 ? '+' : '-';
+        const a = Math.abs(mins);
+        const h = Math.floor(a / 60);
+        const m = a % 60;
+        return 'UTC' + sign + pad(h) + ':' + pad(m);
+    }
+
+    // Gather all timezones (prefer native list if available) and then update labels.
+    function getAllTimezones() {
+        // Prefer the runtime-provided list when available (modern browsers / Node ICU builds)
+        if (typeof Intl === 'object' && typeof Intl.supportedValuesOf === 'function') {
+            try {
+                const tzs = Intl.supportedValuesOf('timeZone');
+                if (Array.isArray(tzs) && tzs.length) return tzs;
+            } catch (e) {
+                // fallthrough to fallback list
+            }
+        }
+
+        // Fallback: a broad list of IANA time zones (keeps UX functional in older runtimes).
+        return [
+            'UTC','Africa/Abidjan','Africa/Accra','Africa/Addis_Ababa','Africa/Algiers','Africa/Asmara','Africa/Bamako','Africa/Bangui','Africa/Banjul','Africa/Bissau','Africa/Blantyre','Africa/Brazzaville','Africa/Bujumbura','Africa/Cairo','Africa/Casablanca','Africa/Ceuta','Africa/Conakry','Africa/Dakar','Africa/Dar_es_Salaam','Africa/Djibouti','Africa/Douala','Africa/El_Aaiun','Africa/Freetown','Africa/Gaborone','Africa/Harare','Africa/Johannesburg','Africa/Juba','Africa/Kampala','Africa/Khartoum','Africa/Kigali','Africa/Kinshasa','Africa/Lagos','Africa/Libreville','Africa/Lome','Africa/Luanda','Africa/Lubumbashi','Africa/Lusaka','Africa/Malabo','Africa/Maputo','Africa/Maseru','Africa/Mbabane','Africa/Mogadishu','Africa/Monrovia','Africa/Nairobi','Africa/Ndjamena','Africa/Niamey','Africa/Nouakchott','Africa/Ouagadougou','Africa/Porto-Novo','Africa/Sao_Tome','Africa/Tripoli','Africa/Tunis','Africa/Windhoek',
+            'America/Adak','America/Anchorage','America/Anguilla','America/Antigua','America/Araguaina','America/Argentina/Buenos_Aires','America/Argentina/Cordoba','America/Argentina/Salta','America/Argentina/Jujuy','America/Argentina/Tucuman','America/Argentina/Catamarca','America/Argentina/La_Rioja','America/Argentina/Rio_Gallegos','America/Argentina/Ushuaia','America/Asuncion','America/Atikokan','America/Bahia','America/Bahia_Banderas','America/Barbados','America/Belem','America/Belize','America/Blanc-Sablon','America/Boa_Vista','America/Bogota','America/Boise','America/Cambridge_Bay','America/Campo_Grande','America/Cancun','America/Caracas','America/Cayenne','America/Cayman','America/Chicago','America/Chihuahua','America/Costa_Rica','America/Creston','America/Cuiaba','America/Curacao','America/Danmarkshavn','America/Dawson','America/Dawson_Creek','America/Denver','America/Detroit','America/Dominica','America/Edmonton','America/Eirunepe','America/El_Salvador','America/Fort_Nelson','America/Fortaleza','America/Glace_Bay','America/Godthab','America/Goose_Bay','America/Grand_Turk','America/Grenada','America/Guadeloupe','America/Guatemala','America/Guayaquil','America/Guyana','America/Halifax','America/Havana','America/Hermosillo','America/Indiana/Indianapolis','America/Indiana/Knox','America/Indiana/Marengo','America/Indiana/Petersburg','America/Indiana/Tell_City','America/Indiana/Vevay','America/Indiana/Vincennes','America/Indiana/Winamac','America/Inuvik','America/Iqaluit','America/Jamaica','America/Jujuy','America/Juneau','America/Kentucky/Louisville','America/Kentucky/Monticello','America/La_Paz','America/Lima','America/Los_Angeles','America/Louisville','America/Lower_Princes','America/Maceio','America/Managua','America/Manaus','America/Marigot','America/Martinique','America/Matamoros','America/Mazatlan','America/Mendoza','America/Menominee','America/Merida','America/Metlakatla','America/Mexico_City','America/Miquelon','America/Moncton','America/Monterrey','America/Montevideo','America/Montreal','America/Montserrat','America/Nassau','America/New_York','America/Nipigon','America/Nome','America/Noronha','America/North_Dakota/Beulah','America/North_Dakota/Center','America/North_Dakota/New_Salem','America/Ojinaga','America/Panama','America/Pangnirtung','America/Paramaribo','America/Phoenix','America/Port-au-Prince','America/Port_of_Spain','America/Porto_Velho','America/Puerto_Rico','America/Punta_Arenas','America/Rainy_River','America/Rankin_Inlet','America/Recife','America/Regina','America/Resolute','America/Rio_Branco','America/Santarem','America/Santiago','America/Santo_Domingo','America/Sao_Paulo','America/Scoresbysund','America/Shiprock','America/Sitka','America/St_Barthelemy','America/St_Johns','America/St_Kitts','America/St_Lucia','America/St_Thomas','America/St_Vincent','America/Swift_Current','America/Tegucigalpa','America/Thunder_Bay','America/Tijuana','America/Toronto','America/Tortola','America/Vancouver','America/Whitehorse','America/Winnipeg','America/Yakutat','America/Yellowknife',
+            'Antarctica/Casey','Antarctica/Davis','Antarctica/DumontDUrville','Antarctica/Macquarie','Antarctica/Mawson','Antarctica/McMurdo','Antarctica/Palmer','Antarctica/Rothera','Antarctica/Syowa','Antarctica/Troll','Antarctica/Vostok',
+            'Asia/Aden','Asia/Almaty','Asia/Amman','Asia/Anadyr','Asia/Aqtau','Asia/Aqtobe','Asia/Ashgabat','Asia/Atyrau','Asia/Baghdad','Asia/Bahrain','Asia/Baku','Asia/Bangkok','Asia/Barnaul','Asia/Beirut','Asia/Bishkek','Asia/Brunei','Asia/Chita','Asia/Choibalsan','Asia/Colombo','Asia/Damascus','Asia/Dhaka','Asia/Dili','Asia/Dubai','Asia/Dushanbe','Asia/Famagusta','Asia/Gaza','Asia/Harbin','Asia/Hebron','Asia/Ho_Chi_Minh','Asia/Hong_Kong','Asia/Hovd','Asia/Irkutsk','Asia/Jakarta','Asia/Jayapura','Asia/Jerusalem','Asia/Kabul','Asia/Kamchatka','Asia/Karachi','Asia/Kathmandu','Asia/Khandyga','Asia/Kolkata','Asia/Krasnoyarsk','Asia/Kuala_Lumpur','Asia/Kuching','Asia/Kuwait','Asia/Macau','Asia/Magadan','Asia/Makassar','Asia/Manila','Asia/Muscat','Asia/Nicosia','Asia/Novokuznetsk','Asia/Novosibirsk','Asia/Omsk','Asia/Oral','Asia/Phnom_Penh','Asia/Pontianak','Asia/Pyongyang','Asia/Qatar','Asia/Qyzylorda','Asia/Riyadh','Asia/Sakhalin','Asia/Samarkand','Asia/Seoul','Asia/Shanghai','Asia/Singapore','Asia/Srednekolymsk','Asia/Taipei','Asia/Tashkent','Asia/Tbilisi','Asia/Tehran','Asia/Thimphu','Asia/Tokyo','Asia/Tomsk','Asia/Ulaanbaatar','Asia/Urumqi','Asia/Ust-Nera','Asia/Vladivostok','Asia/Yakutsk','Asia/Yangon','Asia/Yekaterinburg','Asia/Yerevan',
+            'Atlantic/Azores','Atlantic/Bermuda','Atlantic/Canary','Atlantic/Cape_Verde','Atlantic/Faeroe','Atlantic/Madeira','Atlantic/Reykjavik','Atlantic/South_Georgia','Atlantic/St_Helena','Atlantic/Stanley',
+            'Australia/Adelaide','Australia/Brisbane','Australia/Broken_Hill','Australia/Darwin','Australia/Eucla','Australia/Hobart','Australia/Lindeman','Australia/Lord_Howe','Australia/Melbourne','Australia/Perth','Australia/Sydney',
+            'Europe/Amsterdam','Europe/Andorra','Europe/Astrakhan','Europe/Athens','Europe/Belgrade','Europe/Berlin','Europe/Brussels','Europe/Bucharest','Europe/Budapest','Europe/Chisinau','Europe/Copenhagen','Europe/Dublin','Europe/Gibraltar','Europe/Helsinki','Europe/Istanbul','Europe/Kaliningrad','Europe/Kiev','Europe/Lisbon','Europe/Ljubljana','Europe/London','Europe/Luxembourg','Europe/Madrid','Europe/Malta','Europe/Minsk','Europe/Monaco','Europe/Moscow','Europe/Oslo','Europe/Paris','Europe/Prague','Europe/Riga','Europe/Rome','Europe/Samara','Europe/San_Marino','Europe/Sarajevo','Europe/Saratov','Europe/Simferopol','Europe/Skopje','Europe/Sofia','Europe/Stockholm','Europe/Tallinn','Europe/Tirane','Europe/Ulyanovsk','Europe/Uzhgorod','Europe/Vienna','Europe/Vilnius','Europe/Volgograd','Europe/Warsaw','Europe/Zagreb','Europe/Zaporozhye','Europe/Zurich',
+            'Indian/Chagos','Indian/Christmas','Indian/Cocos','Indian/Kerguelen','Indian/Mahe','Indian/Maldives','Indian/Mauritius','Indian/Reunion',
+            'Pacific/Apia','Pacific/Auckland','Pacific/Bougainville','Pacific/Chatham','Pacific/Chuuk','Pacific/Easter','Pacific/Efate','Pacific/Enderbury','Pacific/Fakaofo','Pacific/Fiji','Pacific/Funafuti','Pacific/Galapagos','Pacific/Gambier','Pacific/Guadalcanal','Pacific/Guam','Pacific/Honolulu','Pacific/Kiritimati','Pacific/Kosrae','Pacific/Kwajalein','Pacific/Majuro','Pacific/Marquesas','Pacific/Midway','Pacific/Nauru','Pacific/Niue','Pacific/Norfolk','Pacific/Noumea','Pacific/Pago_Pago','Pacific/Palau','Pacific/Pitcairn','Pacific/Pohnpei','Pacific/Port_Moresby','Pacific/Rarotonga','Pacific/Saipan','Pacific/Tahiti','Pacific/Tarawa','Pacific/Wake','Pacific/Wallis'
+        ];
+    }
+
+    // Replace timezone options with one representative per current UTC offset (earliest → latest).
+    function pickRepresentativeForOffset(tzList) {
+        const priority = ['UTC','London','New York','Los Angeles','Chicago','Toronto','Mexico City','Sao Paulo','Buenos Aires','Lima','Bogota','Santiago','Paris','Berlin','Rome','Madrid','Moscow','Istanbul','Cairo','Johannesburg','Lagos','Nairobi','Dubai','Riyadh','Karachi','Mumbai','Delhi','Kolkata','Dhaka','Bangkok','Jakarta','Singapore','Hong Kong','Beijing','Shanghai','Seoul','Tokyo','Sydney','Auckland'];
+        const now = new Date();
+        // map to displays
+        const mapped = tzList.map(tz => {
+            const parts = tz.split('/');
+            const display = (parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : tz);
+            return { tz, display };
+        });
+        // try to find prioritized city
+        for (const p of priority) {
+            const found = mapped.find(m => m.display.toLowerCase().includes(p.toLowerCase()));
+            if (found) return found.tz;
+        }
+        // otherwise pick the one with shortest display (likely most notable) or the first
+        mapped.sort((a,b) => a.display.length - b.display.length || a.display.localeCompare(b.display));
+        return mapped[0].tz;
+    }
+
+    function updateTimezoneOptionLabels() {
+        const unique = getAllTimezones();
+        const now = new Date();
+        // group by offset
+        const groups = new Map();
+        unique.forEach(tz => {
+            const offs = getTzOffsetMinutes(tz, now);
+            if (!groups.has(offs)) groups.set(offs, []);
+            groups.get(offs).push(tz);
+        });
+
+        // build representative items array
+        const items = Array.from(groups.entries()).map(([offs, tzs]) => {
+            const rep = pickRepresentativeForOffset(tzs);
+            const parts = rep.split('/');
+            const display = (parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : rep);
+            return { offs, tz: rep, display };
+        });
+
+        // sort by offset ascending
+        items.sort((a,b) => a.offs - b.offs || a.display.localeCompare(b.display));
+
+        timezoneSelect.innerHTML = '';
+        items.forEach(it => {
+            const opt = document.createElement('option');
+            opt.value = it.tz;
+            opt.text = it.display + ' (' + formatOffset(it.offs) + ')';
+            timezoneSelect.appendChild(opt);
+        });
+
+        // Ensure UTC is default if present
+        if (Array.from(timezoneSelect.options).some(o => o.value === 'UTC')) {
+            timezoneSelect.value = 'UTC';
+        } else {
+            const zeroOpt = Array.from(timezoneSelect.options).find(o => getTzOffsetMinutes(o.value, now) === 0);
+            if (zeroOpt) timezoneSelect.value = zeroOpt.value;
+        }
+
+        timezoneSelect.dispatchEvent(new Event('change'));
+    }
+
+    // run immediately to update option labels
+    updateTimezoneOptionLabels();
 
     function updateClocks() {
         // Use epoch ms for consistent arithmetic (always in UTC)
