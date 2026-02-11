@@ -42,6 +42,13 @@
         input[type="datetime-local"] { font-size: 1em; width: 90%; }
         .input-row { background: #f9f9f9; }
 
+        /* General inline time-group styling */
+        .time-inline { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; }
+        .date-wrapper input[type="date"] { min-width:160px; }
+        .time-group select { min-width:56px; }
+        .colon { font-size:1.2em; color:#333; }
+        .cal-btn { background:transparent;border:1px solid #ddd;border-radius:6px;padding:4px 6px;cursor:pointer }
+
         /* Responsive tweaks for small screens */
         @media (max-width: 600px) {
             .container { padding: 12px; border-radius: 8px; }
@@ -53,10 +60,10 @@
             tr.input-row > th { text-align: left; padding: 8px 0; font-weight: 700; }
             tr.input-row > td { padding: 8px 0; text-align: left; }
             .input-row td div { justify-content: flex-start; gap: 8px; }
-            .time-col { width: 100%; min-width: 0; }
-            .time-col label { margin-bottom: 6px; }
-            .time-col input, .time-col select { min-width: 0; width: 100%; }
-            .container label, .container select, .container input { width: 100%; }
+            .time-inline { flex-direction: column; align-items: stretch; }
+            .time-inline .date-wrapper, .time-inline .time-group { width: 100%; display:flex; flex-direction:column; align-items:flex-start; }
+            .date-wrapper input[type="date"] { width: auto; }
+            .time-group select { min-width: 0; width: auto; }
             #timezone { width: 100%; margin-bottom: 8px; }
             #utcClock, #localClock, #utcToTarget { font-size: 1em; }
         }
@@ -84,22 +91,23 @@
             <th>UTC</th>
             <td id="utcClock"></td>
             <td>
-                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
-                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcDate" style="font-size:0.85em;margin-bottom:4px;">Date</label>
-                        <input type="date" id="targetUtcDate">
+                <div class="time-inline" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+                    <div class="date-wrapper" style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetUtcDate" style="font-size:0.85em;margin-bottom:6px;">Date</label>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <input type="date" id="targetUtcDate">
+                            <button type="button" class="cal-btn" onclick="openDatePicker('targetUtcDate')" aria-label="Open date picker">📅</button>
+                        </div>
                     </div>
-                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcHour" style="font-size:0.85em;margin-bottom:4px;">Hour</label>
-                        <select id="targetUtcHour" class="target"></select>
-                    </div>
-                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcMinute" style="font-size:0.85em;margin-bottom:4px;">Minute</label>
-                        <select id="targetUtcMinute" class="target"></select>
-                    </div>
-                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcSecond" style="font-size:0.85em;margin-bottom:4px;">Second</label>
-                        <select id="targetUtcSecond" class="target"></select>
+                    <div class="time-group" style="display:flex;flex-direction:column;align-items:center;">
+                        <label style="font-size:0.85em;margin-bottom:6px;">Time</label>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <select id="targetUtcHour" class="target"></select>
+                            <span class="colon">:</span>
+                            <select id="targetUtcMinute" class="target"></select>
+                            <span class="colon">:</span>
+                            <select id="targetUtcSecond" class="target"></select>
+                        </div>
                     </div>
                 </div>
             </td>
@@ -108,22 +116,23 @@
             <th>Local</th>
             <td id="localClock"></td>
             <td>
-                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
-                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalDate" style="font-size:0.85em;margin-bottom:4px;">Date</label>
-                        <input type="date" id="targetLocalDate">
+                <div class="time-inline" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+                    <div class="date-wrapper" style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="targetLocalDate" style="font-size:0.85em;margin-bottom:6px;">Date</label>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <input type="date" id="targetLocalDate">
+                            <button type="button" class="cal-btn" onclick="openDatePicker('targetLocalDate')" aria-label="Open date picker">📅</button>
+                        </div>
                     </div>
-                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalHour" style="font-size:0.85em;margin-bottom:4px;">Hour</label>
-                        <select id="targetLocalHour" class="target"></select>
-                    </div>
-                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalMinute" style="font-size:0.85em;margin-bottom:4px;">Minute</label>
-                        <select id="targetLocalMinute" class="target"></select>
-                    </div>
-                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalSecond" style="font-size:0.85em;margin-bottom:4px;">Second</label>
-                        <select id="targetLocalSecond" class="target"></select>
+                    <div class="time-group" style="display:flex;flex-direction:column;align-items:center;">
+                        <label style="font-size:0.85em;margin-bottom:6px;">Time</label>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <select id="targetLocalHour" class="target"></select>
+                            <span class="colon">:</span>
+                            <select id="targetLocalMinute" class="target"></select>
+                            <span class="colon">:</span>
+                            <select id="targetLocalSecond" class="target"></select>
+                        </div>
                     </div>
                 </div>
             </td>
@@ -712,6 +721,16 @@
     } catch (e) {
         showCompatibilityWarning('Failed to initialize time selects; time input may be limited.');
         console.error(e);
+    }
+
+    // Helper: open native date picker when available
+    function openDatePicker(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (typeof el.showPicker === 'function') {
+            try { el.showPicker(); return; } catch (e) { /* ignore */ }
+        }
+        el.focus();
     }
 
     // --- timezone labels: compute offset (minutes) for a timezone at a given instant ---
