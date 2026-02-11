@@ -47,7 +47,7 @@
 <body>
 <div class="header">
     <img id="mainLogo" alt="RPL Logo">
-    <div class="header-title">RPL World Clock</div>
+    <div class="header-title">RPL Timezone Converter</div>
 </div>
 <div class="container">
     <label for="timezone">Select Timezone:</label>
@@ -73,14 +73,20 @@
             <th>UTC</th>
             <td id="utcClock"></td>
             <td>
-                <input type="datetime-local" id="targetUtcInput" step="1">
+                <div style="display:flex;gap:8px;justify-content:center;align-items:center;">
+                    <input type="date" id="targetUtcDate">
+                    <input type="time" id="targetUtcTime" step="1" placeholder="HH:MM:SS" inputmode="numeric">
+                </div>
             </td>
         </tr>
         <tr class="input-row">
             <th>Local</th>
             <td id="localClock"></td>
             <td>
-                <input type="datetime-local" id="targetLocalInput" step="1">
+                <div style="display:flex;gap:8px;justify-content:center;align-items:center;">
+                    <input type="date" id="targetLocalDate">
+                    <input type="time" id="targetLocalTime" step="1" placeholder="HH:MM:SS" inputmode="numeric">
+                </div>
             </td>
         </tr>
         <tr class="input-row">
@@ -419,8 +425,11 @@
     const timezoneSelect = document.getElementById('timezone');
     const utcClock = document.getElementById('utcClock');
     const localClock = document.getElementById('localClock');
-    const targetUtcInput = document.getElementById('targetUtcInput');
-    const targetLocalInput = document.getElementById('targetLocalInput');
+    // target inputs separated into date + time for explicit 24-hour (military) input
+    const targetUtcDate = document.getElementById('targetUtcDate');
+    const targetUtcTime = document.getElementById('targetUtcTime');
+    const targetLocalDate = document.getElementById('targetLocalDate');
+    const targetLocalTime = document.getElementById('targetLocalTime');
     const utcToTarget = document.getElementById('utcToTarget');
 
     // Helper: pad to 2 digits
@@ -491,94 +500,115 @@
 
     // When user enters a target time, keep it static until changed
 
-    // When user enters a UTC target, update local target
-    targetUtcInput.addEventListener('change', function() {
-        if (targetUtcInput.value) {
-            // Always parse as UTC
-            lastTargetUtc = new Date(targetUtcInput.value + 'Z');
-            // Convert UTC to local in selected timezone
-            const utcDate = new Date(targetUtcInput.value + 'Z');
-            const tz = timezoneSelect.value;
-            // Get local time in selected timezone for this UTC
-            const localStr = utcDate.toLocaleString('sv-SE', {
-                timeZone: tz,
-                hour12: false,
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            }).replace(' ', 'T');
-            targetLocalInput.value = localStr.length === 16 ? localStr + ':00' : localStr;
-            lastTargetLocal = parseInputValue(targetLocalInput.value);
-        } else {
-            lastTargetUtc = null;
-            targetLocalInput.value = '';
-            lastTargetLocal = null;
-        }
-    });
+    // Helper: get date/time parts for a Date in a timezone (returns numbers)
+    function partsForDateInTimezone(date, tz) {
+        const dtf = new Intl.DateTimeFormat('en-GB', {
+            timeZone: tz,
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        });
+        const parts = dtf.formatToParts(date);
+        const get = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
+        return {
+            year: get('year'), month: get('month'), day: get('day'),
+            hour: get('hour'), minute: get('minute'), second: get('second')
+        };
+    }
 
-    // When user enters a local target, update UTC target
-    targetLocalInput.addEventListener('change', function() {
-        if (targetLocalInput.value) {
-            lastTargetLocal = parseInputValue(targetLocalInput.value);
+    // Set UTC target from the UTC date/time inputs
+    function setUtcFromInputs() {
+        if (targetUtcDate.value && targetUtcTime.value) {
+            let t = targetUtcTime.value;
+            if (t.length === 5) t += ':00';
+            const iso = targetUtcDate.value + 'T' + t + 'Z';
+            const utcDate = new Date(iso);
+            if (!isNaN(utcDate)) {
+                lastTargetUtc = utcDate;
+                // update local inputs to reflect selected timezone
+                const tz = timezoneSelect.value;
+                const p = partsForDateInTimezone(utcDate, tz);
+                targetLocalDate.value = p.year + '-' + pad(p.month) + '-' + pad(p.day);
+                targetLocalTime.value = pad(p.hour) + ':' + pad(p.minute) + ':' + pad(p.second);
+                lastTargetLocal = utcDate;
+            }
+        } else {
+            lastTargetUtc = null;
+            targetLocalDate.value = '';
+            targetLocalTime.value = '';
+            lastTargetLocal = null;
+        }
+    }
+
+    // Set UTC target when user edits the local date/time inputs (interpreted in selected timezone)
+    function setLocalFromInputs() {
+        if (targetLocalDate.value && targetLocalTime.value) {
+            let t = targetLocalTime.value;
+            if (t.length === 5) t += ':00';
+            const wall = targetLocalDate.value + 'T' + t;
             const tz = timezoneSelect.value;
-            // Use helper to get UTC instant for wall time in selected timezone
-            const utcDate = wallTimeInTimezoneToUTC(targetLocalInput.value, tz);
-            targetUtcInput.value = toInputValue(utcDate);
-            lastTargetUtc = utcDate;
+            const utcDate = wallTimeInTimezoneToUTC(wall, tz);
+            if (!isNaN(utcDate)) {
+                lastTargetUtc = utcDate;
+                // populate UTC inputs (use UTC components)
+                targetUtcDate.value = utcDate.getUTCFullYear() + '-' + pad(utcDate.getUTCMonth()+1) + '-' + pad(utcDate.getUTCDate());
+                targetUtcTime.value = pad(utcDate.getUTCHours()) + ':' + pad(utcDate.getUTCMinutes()) + ':' + pad(utcDate.getUTCSeconds());
+                lastTargetLocal = utcDate;
+            }
         } else {
             lastTargetLocal = null;
-            targetUtcInput.value = '';
+            targetUtcDate.value = '';
+            targetUtcTime.value = '';
             lastTargetUtc = null;
         }
-    });
+    }
+
+    // Wire inputs: when either date or time parts change, update the canonical target
+    targetUtcDate.addEventListener('change', setUtcFromInputs);
+    targetUtcTime.addEventListener('change', setUtcFromInputs);
+    targetLocalDate.addEventListener('change', setLocalFromInputs);
+    targetLocalTime.addEventListener('change', setLocalFromInputs);
 
     timezoneSelect.addEventListener('change', function() {
-        // When timezone changes, update local target input to match UTC target
-        if (targetUtcInput.value) {
-            const utcDate = new Date(targetUtcInput.value + 'Z');
+        // When timezone changes, recompute local inputs from lastTargetUtc
+        if (lastTargetUtc) {
             const tz = timezoneSelect.value;
-            const localStr = utcDate.toLocaleString('sv-SE', {
-                timeZone: tz,
-                hour12: false,
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            }).replace(' ', 'T');
-            targetLocalInput.value = localStr.length === 16 ? localStr + ':00' : localStr;
-            lastTargetLocal = parseInputValue(targetLocalInput.value);
+            const p = partsForDateInTimezone(lastTargetUtc, tz);
+            targetLocalDate.value = p.year + '-' + pad(p.month) + '-' + pad(p.day);
+            targetLocalTime.value = pad(p.hour) + ':' + pad(p.minute) + ':' + pad(p.second);
+            lastTargetLocal = lastTargetUtc;
         }
         updateClocks();
     });
 
+    // Display a Date as UTC (use UTC getters so values are consistent)
+    function formatDisplayUTC(date) {
+        if (!date) return '';
+        return date.getUTCFullYear() + '-' + pad(date.getUTCMonth()+1) + '-' + pad(date.getUTCDate()) + ' ' + pad(date.getUTCHours()) + ':' + pad(date.getUTCMinutes()) + ':' + pad(date.getUTCSeconds());
+    }
+
     function updateClocks() {
-        const now = new Date();
-        // UTC time (always true UTC)
-        const nowUtc = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
-        utcClock.textContent = formatDisplay(nowUtc);
-        // Local time in selected timezone
+        // Use epoch ms for consistent arithmetic (always in UTC)
+        const nowMs = Date.now();
+        const nowDate = new Date(nowMs);
+
+        // UTC time (display with UTC getters)
+        utcClock.textContent = formatDisplayUTC(nowDate);
+
+        // Local time in selected timezone (use existing helper)
         const tz = timezoneSelect.value;
         let localTime;
         try {
-            localTime = getLocalTime(now, tz);
+            localTime = getLocalTime(new Date(nowMs), tz);
             localClock.textContent = formatDisplay(localTime);
         } catch (e) {
             localClock.textContent = 'Invalid timezone';
             localTime = null;
         }
-        // Target UTC
-        let targetUtc = lastTargetUtc;
-        // Target Local
-        let targetLocal = lastTargetLocal;
 
-        // Single Time to Target countdown, always to the UTC target
+        // Countdown to the canonical UTC target
         if (lastTargetUtc) {
-            utcToTarget.textContent = formatDiff(lastTargetUtc.getTime() - nowUtc.getTime());
+            const diffMs = lastTargetUtc.getTime() - nowMs; // positive when in future, decreases each second
+            utcToTarget.textContent = formatDiff(diffMs);
         } else {
             utcToTarget.textContent = '';
         }
