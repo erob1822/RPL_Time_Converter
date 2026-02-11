@@ -95,24 +95,32 @@
         </tr>
         <tr class="input-row">
             <th>UTC</th>
-            <td id="utcClock"></td>
             <td>
-                <div class="time-inline" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
-                    <div class="date-wrapper" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcDate" style="font-size:0.85em;margin-bottom:6px;">Date</label>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <input type="date" id="targetUtcDate">
-                            <button type="button" class="cal-btn" onclick="openDatePicker('targetUtcDate')" aria-label="Open date picker">📅</button>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <label style="font-weight:bold;margin-bottom:6px;">Current Time:</label>
+                    <div id="utcClock"></div>
+                </div>
+            </td>
+            <td>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <label style="font-weight:bold;margin-bottom:6px;">Target Time (UTC):</label>
+                    <div class="time-inline" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+                        <div class="date-wrapper" style="display:flex;flex-direction:column;align-items:center;">
+                            <label for="targetUtcDate" style="font-size:0.85em;margin-bottom:6px;">Date</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <input type="date" id="targetUtcDate">
+                                <button type="button" class="cal-btn" onclick="openDatePicker('targetUtcDate')" aria-label="Open date picker">📅</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="time-group" style="display:flex;flex-direction:column;align-items:center;">
-                        <label style="font-size:0.85em;margin-bottom:6px;">Time</label>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <select id="targetUtcHour" class="target"></select>
-                            <span class="colon">:</span>
-                            <select id="targetUtcMinute" class="target"></select>
-                            <span class="colon">:</span>
-                            <select id="targetUtcSecond" class="target"></select>
+                        <div class="time-group" style="display:flex;flex-direction:column;align-items:center;">
+                            <label style="font-size:0.85em;margin-bottom:6px;">Time</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <select id="targetUtcHour" class="target"></select>
+                                <span class="colon">:</span>
+                                <select id="targetUtcMinute" class="target"></select>
+                                <span class="colon">:</span>
+                                <select id="targetUtcSecond" class="target"></select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -120,24 +128,32 @@
         </tr>
         <tr class="input-row">
             <th>Local</th>
-            <td id="localClock"></td>
             <td>
-                <div class="time-inline" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
-                    <div class="date-wrapper" style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalDate" style="font-size:0.85em;margin-bottom:6px;">Date</label>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <input type="date" id="targetLocalDate">
-                            <button type="button" class="cal-btn" onclick="openDatePicker('targetLocalDate')" aria-label="Open date picker">📅</button>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <label style="font-weight:bold;margin-bottom:6px;">Current Time:</label>
+                    <div id="localClock"></div>
+                </div>
+            </td>
+            <td>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <label style="font-weight:bold;margin-bottom:6px;">Target Time (Local):</label>
+                    <div class="time-inline" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+                        <div class="date-wrapper" style="display:flex;flex-direction:column;align-items:center;">
+                            <label for="targetLocalDate" style="font-size:0.85em;margin-bottom:6px;">Date</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <input type="date" id="targetLocalDate">
+                                <button type="button" class="cal-btn" onclick="openDatePicker('targetLocalDate')" aria-label="Open date picker">📅</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="time-group" style="display:flex;flex-direction:column;align-items:center;">
-                        <label style="font-size:0.85em;margin-bottom:6px;">Time</label>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <select id="targetLocalHour" class="target"></select>
-                            <span class="colon">:</span>
-                            <select id="targetLocalMinute" class="target"></select>
-                            <span class="colon">:</span>
-                            <select id="targetLocalSecond" class="target"></select>
+                        <div class="time-group" style="display:flex;flex-direction:column;align-items:center;">
+                            <label style="font-size:0.85em;margin-bottom:6px;">Time</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <select id="targetLocalHour" class="target"></select>
+                                <span class="colon">:</span>
+                                <select id="targetLocalMinute" class="target"></select>
+                                <span class="colon">:</span>
+                                <select id="targetLocalSecond" class="target"></select>
+                            </div>
                         </div>
                     </div>
                 </div>
