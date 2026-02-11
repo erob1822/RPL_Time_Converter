@@ -41,6 +41,25 @@
         th { background: #f0f0f0; }
         input[type="datetime-local"] { font-size: 1em; width: 90%; }
         .input-row { background: #f9f9f9; }
+
+        /* Responsive tweaks for small screens */
+        @media (max-width: 600px) {
+            .container { padding: 12px; border-radius: 8px; }
+            .header-title { font-size: 1.4em; }
+            #mainLogo { height: 44px; }
+            table { display: block; }
+            table thead, table tbody, table tr, table th, table td { display: block; width: 100%; box-sizing: border-box; }
+            tr.input-row { margin-bottom: 12px; }
+            tr.input-row > th { text-align: left; padding: 8px 0; font-weight: 700; }
+            tr.input-row > td { padding: 8px 0; text-align: left; }
+            .input-row td div { justify-content: flex-start; gap: 8px; }
+            .time-col { width: 100%; min-width: 0; }
+            .time-col label { margin-bottom: 6px; }
+            .time-col input, .time-col select { min-width: 0; width: 100%; }
+            .container label, .container select, .container input { width: 100%; }
+            #timezone { width: 100%; margin-bottom: 8px; }
+            #utcClock, #localClock, #utcToTarget { font-size: 1em; }
+        }
     </style>
     <link id="faviconLink" rel="icon" type="image/jpeg">
 </head>
@@ -66,19 +85,19 @@
             <td id="utcClock"></td>
             <td>
                 <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
-                    <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
                         <label for="targetUtcDate" style="font-size:0.85em;margin-bottom:4px;">Date</label>
                         <input type="date" id="targetUtcDate">
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
                         <label for="targetUtcHour" style="font-size:0.85em;margin-bottom:4px;">Hour</label>
                         <select id="targetUtcHour" class="target"></select>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
                         <label for="targetUtcMinute" style="font-size:0.85em;margin-bottom:4px;">Minute</label>
                         <select id="targetUtcMinute" class="target"></select>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
                         <label for="targetUtcSecond" style="font-size:0.85em;margin-bottom:4px;">Second</label>
                         <select id="targetUtcSecond" class="target"></select>
                     </div>
@@ -90,19 +109,19 @@
             <td id="localClock"></td>
             <td>
                 <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
-                    <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
                         <label for="targetLocalDate" style="font-size:0.85em;margin-bottom:4px;">Date</label>
                         <input type="date" id="targetLocalDate">
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
                         <label for="targetLocalHour" style="font-size:0.85em;margin-bottom:4px;">Hour</label>
                         <select id="targetLocalHour" class="target"></select>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
                         <label for="targetLocalMinute" style="font-size:0.85em;margin-bottom:4px;">Minute</label>
                         <select id="targetLocalMinute" class="target"></select>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="time-col" style="display:flex;flex-direction:column;align-items:center;">
                         <label for="targetLocalSecond" style="font-size:0.85em;margin-bottom:4px;">Second</label>
                         <select id="targetLocalSecond" class="target"></select>
                     </div>
