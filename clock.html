@@ -93,14 +93,25 @@
         // Helper: Convert a wall time (yyyy-MM-ddTHH:mm:ss) in a given timezone to a UTC Date
         function wallTimeInTimezoneToUTC(wallTimeStr, tz) {
             // wallTimeStr: 'yyyy-MM-ddTHH:mm:ss'
-            // 1. Parse as if local
+            // Strategy: Find the UTC instant that produces the desired wall time in the target timezone
+            
+            // For UTC timezone, just append 'Z' to indicate UTC
+            if (tz === 'UTC') {
+                return new Date(wallTimeStr + 'Z');
+            }
+            
+            // For other timezones, we need to find the UTC equivalent through iteration
             const [datePart, timePart] = wallTimeStr.split('T');
             const [year, month, day] = datePart.split('-').map(Number);
-            const [hour, minute, second] = timePart.split(':').map(Number);
-            // 2. Create a Date object as if in local
-            const localDate = new Date(year, month - 1, day, hour, minute, second);
-            // 3. Get the equivalent UTC time for this wall time in the selected timezone
-            //    Use Intl.DateTimeFormat to get the UTC parts for this wall time in the selected timezone
+            const timeParts = timePart.split(':').map(Number);
+            const hour = timeParts[0];
+            const minute = timeParts[1];
+            const second = timeParts[2] || 0; // Default to 0 if seconds not provided
+            
+            // Start with an initial guess: interpret wall time as UTC
+            let guessUtc = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+            
+            // Format this guess in the target timezone using formatToParts for reliable parsing
             const dtf = new Intl.DateTimeFormat('en-US', {
                 timeZone: tz,
                 year: 'numeric',
@@ -111,13 +122,35 @@
                 second: '2-digit',
                 hour12: false
             });
-            // Format the localDate as if it were in the selected timezone
-            const parts = dtf.formatToParts(localDate);
-            const get = t => parts.find(p => p.type === t)?.value;
-            // These are the UTC values for the wall time in the selected timezone
-            const utcYear = get('year'), utcMonth = get('month'), utcDay = get('day'), utcHour = get('hour'), utcMinute = get('minute'), utcSecond = get('second');
-            // Construct a Date object in UTC
-            return new Date(Date.UTC(utcYear, utcMonth - 1, utcDay, utcHour, utcMinute, utcSecond));
+            
+            // Iterate to find the correct UTC time that produces the desired wall time
+            // Typically converges in 1-2 iterations for standard timezone offsets,
+            // and 3 iterations handles even complex DST transition cases
+            const MAX_ITERATIONS = 3;
+            for (let i = 0; i < MAX_ITERATIONS; i++) {
+                const parts = dtf.formatToParts(guessUtc);
+                const get = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
+                
+                const wallYear = get('year');
+                const wallMonth = get('month');
+                const wallDay = get('day');
+                const wallHour = get('hour');
+                const wallMinute = get('minute');
+                const wallSecond = get('second');
+                
+                // Calculate millisecond difference between desired and actual wall time
+                // Use UTC to avoid timezone issues in the comparison itself
+                const desiredMs = Date.UTC(year, month - 1, day, hour, minute, second);
+                const actualMs = Date.UTC(wallYear, wallMonth - 1, wallDay, wallHour, wallMinute, wallSecond);
+                const diff = desiredMs - actualMs;
+                
+                if (diff === 0) break; // Perfect match found
+                
+                // Adjust our UTC guess by the difference
+                guessUtc = new Date(guessUtc.getTime() + diff);
+            }
+            
+            return guessUtc;
         }
     // --- BEGIN PASTE BASE64 STRING BELOW THIS LINE --- This just allows us to see the RPL logo offline. 
     var logoBase64 = "/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFB" +
@@ -389,7 +422,6 @@
     const targetUtcInput = document.getElementById('targetUtcInput');
     const targetLocalInput = document.getElementById('targetLocalInput');
     const utcToTarget = document.getElementById('utcToTarget');
-    const localToTarget = document.getElementById('localToTarget');
 
     // Helper: pad to 2 digits
     function pad(n) { return n < 10 ? '0' + n : n; }
