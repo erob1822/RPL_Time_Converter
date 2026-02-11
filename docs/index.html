@@ -749,10 +749,15 @@
     function openDatePicker(id) {
         const el = document.getElementById(id);
         if (!el) return;
+        // Preferred modern API
         if (typeof el.showPicker === 'function') {
-            try { el.showPicker(); return; } catch (e) { /* ignore */ }
+            try { el.showPicker(); return; } catch (e) { /* ignore and fallback */ }
         }
-        el.focus();
+        // Some browsers open the picker on click/focus - try both
+        try { el.click(); } catch (e) {}
+        try { el.focus(); } catch (e) {}
+        // final attempt after a tiny delay
+        setTimeout(() => { try { el.focus(); } catch (e) {} }, 50);
     }
 
     // --- timezone labels: compute offset (minutes) for a timezone at a given instant ---
@@ -888,6 +893,36 @@
 
     // run immediately to update option labels
     updateTimezoneOptionLabels();
+
+    // Set initial default dates/times in the inputs (doesn't set canonical target)
+    function setInitialDates() {
+        const now = new Date();
+        // UTC defaults
+        if (targetUtcDate) targetUtcDate.value = now.getUTCFullYear() + '-' + pad(now.getUTCMonth()+1) + '-' + pad(now.getUTCDate());
+        if (targetUtcHour) targetUtcHour.value = pad(now.getUTCHours());
+        if (targetUtcMinute) targetUtcMinute.value = pad(now.getUTCMinutes());
+        if (targetUtcSecond) targetUtcSecond.value = pad(now.getUTCSeconds());
+        // Local defaults based on selected timezone
+        const tz = timezoneSelect.value || 'UTC';
+        try {
+            const p = partsForDateInTimezone(now, tz);
+            if (targetLocalDate) targetLocalDate.value = p.year + '-' + pad(p.month) + '-' + pad(p.day);
+            if (targetLocalHour) targetLocalHour.value = pad(p.hour);
+            if (targetLocalMinute) targetLocalMinute.value = pad(p.minute);
+            if (targetLocalSecond) targetLocalSecond.value = pad(p.second);
+        } catch (e) {
+            // fallback to UTC values when parsing fails
+            if (targetLocalDate) targetLocalDate.value = now.getUTCFullYear() + '-' + pad(now.getUTCMonth()+1) + '-' + pad(now.getUTCDate());
+            if (targetLocalHour) targetLocalHour.value = pad(now.getUTCHours());
+            if (targetLocalMinute) targetLocalMinute.value = pad(now.getUTCMinutes());
+            if (targetLocalSecond) targetLocalSecond.value = pad(now.getUTCSeconds());
+        }
+    }
+
+    // populate initial values once selects exist
+    try { setInitialDates(); } catch (e) {
+        console.warn('Unable to set initial dates:', e);
+    }
 
     function updateClocks() {
         // Use epoch ms for consistent arithmetic (always in UTC)
