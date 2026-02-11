@@ -103,10 +103,13 @@
             // For other timezones, we need to find the UTC equivalent through iteration
             const [datePart, timePart] = wallTimeStr.split('T');
             const [year, month, day] = datePart.split('-').map(Number);
-            const [hour, minute, second] = timePart.split(':').map(Number);
+            const timeParts = timePart.split(':').map(Number);
+            const hour = timeParts[0];
+            const minute = timeParts[1];
+            const second = timeParts[2] || 0; // Default to 0 if seconds not provided
             
             // Start with an initial guess: interpret wall time as UTC
-            let guessUtc = new Date(Date.UTC(year, month - 1, day, hour, minute, second || 0));
+            let guessUtc = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
             
             // Format this guess in the target timezone using formatToParts for reliable parsing
             const dtf = new Intl.DateTimeFormat('en-US', {
@@ -122,6 +125,7 @@
             
             // Iterate to find the correct UTC time that produces the desired wall time
             // 3 iterations is typically sufficient to converge, even accounting for DST transitions
+            // If not converged after MAX_ITERATIONS, we use the best guess (error will be < 1 hour)
             const MAX_ITERATIONS = 3;
             for (let i = 0; i < MAX_ITERATIONS; i++) {
                 const parts = dtf.formatToParts(guessUtc);
@@ -136,7 +140,7 @@
                 
                 // Calculate millisecond difference between desired and actual wall time
                 // Use UTC to avoid timezone issues in the comparison itself
-                const desiredMs = Date.UTC(year, month - 1, day, hour, minute, second || 0);
+                const desiredMs = Date.UTC(year, month - 1, day, hour, minute, second);
                 const actualMs = Date.UTC(wallYear, wallMonth - 1, wallDay, wallHour, wallMinute, wallSecond);
                 const diff = desiredMs - actualMs;
                 
