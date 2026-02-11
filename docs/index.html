@@ -88,11 +88,6 @@
         <option value="">Loading timezones…</option>
     </select>
     <table>
-        <tr>
-            <th></th>
-            <th></th>
-            <th></th>
-        </tr>
         <tr class="input-row">
             <th>UTC</th>
             <td>
@@ -729,6 +724,17 @@
 
     // Populate hour and minute selects with options (24-hour / 0-59)
     function populateTimeSelects() {
+        // add a blank placeholder so the selects are initially unselected
+        const blank = document.createElement('option'); blank.value = ''; blank.text = '--';
+        targetUtcHour.appendChild(blank);
+        targetLocalHour.appendChild(blank.cloneNode(true));
+        const blank2 = document.createElement('option'); blank2.value = ''; blank2.text = '--';
+        targetUtcMinute.appendChild(blank2);
+        targetLocalMinute.appendChild(blank2.cloneNode(true));
+        const blank3 = document.createElement('option'); blank3.value = ''; blank3.text = '--';
+        targetUtcSecond.appendChild(blank3);
+        targetLocalSecond.appendChild(blank3.cloneNode(true));
+
         const hrs = Array.from({length:24}, (_,i) => i);
         const mins = Array.from({length:60}, (_,i) => i);
         const secs = Array.from({length:60}, (_,i) => i);
@@ -894,34 +900,24 @@
     // run immediately to update option labels
     updateTimezoneOptionLabels();
 
-    // Set initial default dates/times in the inputs (doesn't set canonical target)
-    function setInitialDates() {
-        const now = new Date();
-        // UTC defaults
-        if (targetUtcDate) targetUtcDate.value = now.getUTCFullYear() + '-' + pad(now.getUTCMonth()+1) + '-' + pad(now.getUTCDate());
-        if (targetUtcHour) targetUtcHour.value = pad(now.getUTCHours());
-        if (targetUtcMinute) targetUtcMinute.value = pad(now.getUTCMinutes());
-        if (targetUtcSecond) targetUtcSecond.value = pad(now.getUTCSeconds());
-        // Local defaults based on selected timezone
-        const tz = timezoneSelect.value || 'UTC';
-        try {
-            const p = partsForDateInTimezone(now, tz);
-            if (targetLocalDate) targetLocalDate.value = p.year + '-' + pad(p.month) + '-' + pad(p.day);
-            if (targetLocalHour) targetLocalHour.value = pad(p.hour);
-            if (targetLocalMinute) targetLocalMinute.value = pad(p.minute);
-            if (targetLocalSecond) targetLocalSecond.value = pad(p.second);
-        } catch (e) {
-            // fallback to UTC values when parsing fails
-            if (targetLocalDate) targetLocalDate.value = now.getUTCFullYear() + '-' + pad(now.getUTCMonth()+1) + '-' + pad(now.getUTCDate());
-            if (targetLocalHour) targetLocalHour.value = pad(now.getUTCHours());
-            if (targetLocalMinute) targetLocalMinute.value = pad(now.getUTCMinutes());
-            if (targetLocalSecond) targetLocalSecond.value = pad(now.getUTCSeconds());
-        }
+    // Initialize inputs: default time to 00:00:00 (date left empty)
+    function clearInitialInputs() {
+        if (targetUtcDate) targetUtcDate.value = '';
+        if (targetUtcHour) targetUtcHour.value = '00';
+        if (targetUtcMinute) targetUtcMinute.value = '00';
+        if (targetUtcSecond) targetUtcSecond.value = '00';
+        if (targetLocalDate) targetLocalDate.value = '';
+        if (targetLocalHour) targetLocalHour.value = '00';
+        if (targetLocalMinute) targetLocalMinute.value = '00';
+        if (targetLocalSecond) targetLocalSecond.value = '00';
+        // ensure there's no active canonical target until the user sets one
+        lastTargetUtc = null;
+        updateClocks();
     }
 
-    // populate initial values once selects exist
-    try { setInitialDates(); } catch (e) {
-        console.warn('Unable to set initial dates:', e);
+    // ensure fields are initialized on load
+    try { clearInitialInputs(); } catch (e) {
+        console.warn('Unable to clear initial inputs:', e);
     }
 
     function updateClocks() {
