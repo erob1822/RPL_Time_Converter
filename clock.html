@@ -124,12 +124,12 @@
             });
             
             // Iterate to find the correct UTC time that produces the desired wall time
-            // 3 iterations is typically sufficient to converge, even accounting for DST transitions
-            // If not converged after MAX_ITERATIONS, we use the best guess (error will be < 1 hour)
+            // Typically converges in 1-2 iterations for standard timezone offsets,
+            // and 3 iterations handles even complex DST transition cases
             const MAX_ITERATIONS = 3;
             for (let i = 0; i < MAX_ITERATIONS; i++) {
                 const parts = dtf.formatToParts(guessUtc);
-                const get = (type) => parseInt(parts.find(p => p.type === type)?.value || '0');
+                const get = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
                 
                 const wallYear = get('year');
                 const wallMonth = get('month');
