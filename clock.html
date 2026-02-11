@@ -93,25 +93,23 @@
         // Helper: Convert a wall time (yyyy-MM-ddTHH:mm:ss) in a given timezone to a UTC Date
         function wallTimeInTimezoneToUTC(wallTimeStr, tz) {
             // wallTimeStr: 'yyyy-MM-ddTHH:mm:ss'
-            // Strategy: Create an ISO string with the timezone and parse it
-            // This treats the input as a wall time in the specified timezone
+            // Strategy: Find the UTC instant that produces the desired wall time in the target timezone
             
             // For UTC timezone, just append 'Z' to indicate UTC
             if (tz === 'UTC') {
                 return new Date(wallTimeStr + 'Z');
             }
             
-            // For other timezones, we need to find the UTC equivalent
-            // We'll use a binary search approach to find the correct UTC time
+            // For other timezones, we need to find the UTC equivalent through iteration
             const [datePart, timePart] = wallTimeStr.split('T');
             const [year, month, day] = datePart.split('-').map(Number);
             const [hour, minute, second] = timePart.split(':').map(Number);
             
-            // Start with an initial guess: interpret as UTC
+            // Start with an initial guess: interpret wall time as UTC
             let guessUtc = new Date(Date.UTC(year, month - 1, day, hour, minute, second || 0));
             
-            // Format this guess in the target timezone to see what wall time it produces
-            const dtf = new Intl.DateTimeFormat('en-GB', {
+            // Format this guess in the target timezone using formatToParts for reliable parsing
+            const dtf = new Intl.DateTimeFormat('en-US', {
                 timeZone: tz,
                 year: 'numeric',
                 month: '2-digit',
@@ -123,22 +121,26 @@
             });
             
             // Iterate to find the correct UTC time that produces the desired wall time
-            for (let i = 0; i < 3; i++) {
-                const formatted = dtf.format(guessUtc).replace(',', '').split(/\D+/);
-                // formatted: [dd, mm, yyyy, HH, MM, SS]
-                const wallYear = parseInt(formatted[2]);
-                const wallMonth = parseInt(formatted[1]);
-                const wallDay = parseInt(formatted[0]);
-                const wallHour = parseInt(formatted[3]);
-                const wallMinute = parseInt(formatted[4]);
-                const wallSecond = parseInt(formatted[5]);
+            // 3 iterations is typically sufficient to converge, even accounting for DST transitions
+            const MAX_ITERATIONS = 3;
+            for (let i = 0; i < MAX_ITERATIONS; i++) {
+                const parts = dtf.formatToParts(guessUtc);
+                const get = (type) => parseInt(parts.find(p => p.type === type)?.value || '0');
                 
-                // Calculate the difference between desired and actual wall time
-                const desiredWallTime = new Date(year, month - 1, day, hour, minute, second || 0);
-                const actualWallTime = new Date(wallYear, wallMonth - 1, wallDay, wallHour, wallMinute, wallSecond);
-                const diff = desiredWallTime - actualWallTime;
+                const wallYear = get('year');
+                const wallMonth = get('month');
+                const wallDay = get('day');
+                const wallHour = get('hour');
+                const wallMinute = get('minute');
+                const wallSecond = get('second');
                 
-                if (diff === 0) break; // Perfect match
+                // Calculate millisecond difference between desired and actual wall time
+                // Use UTC to avoid timezone issues in the comparison itself
+                const desiredMs = Date.UTC(year, month - 1, day, hour, minute, second || 0);
+                const actualMs = Date.UTC(wallYear, wallMonth - 1, wallDay, wallHour, wallMinute, wallSecond);
+                const diff = desiredMs - actualMs;
+                
+                if (diff === 0) break; // Perfect match found
                 
                 // Adjust our UTC guess by the difference
                 guessUtc = new Date(guessUtc.getTime() + diff);
