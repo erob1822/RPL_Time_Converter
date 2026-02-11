@@ -41,8 +41,40 @@
         th { background: #f0f0f0; }
         input[type="datetime-local"] { font-size: 1em; width: 90%; }
         .input-row { background: #f9f9f9; }
+
+        /* General inline time-group styling */
+        .time-inline { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; }
+        .date-wrapper input[type="date"] { min-width:160px; }
+        .time-group select { min-width:56px; }
+        .colon { font-size:1.2em; color:#333; }
+        .cal-btn { background:transparent;border:1px solid #ddd;border-radius:6px;padding:4px 6px;cursor:pointer }
+
+        /* Responsive tweaks for small screens */
+        @media (max-width: 600px) {
+            .container { padding: 12px; border-radius: 8px; }
+            .header-title { font-size: 1.4em; }
+            #mainLogo { height: 44px; }
+            table { display: block; }
+            table thead, table tbody, table tr, table th, table td { display: block; width: 100%; box-sizing: border-box; }
+            tr.input-row { margin-bottom: 12px; }
+            tr.input-row > th { text-align: left; padding: 8px 0; font-weight: 700; }
+            tr.input-row > td { padding: 8px 0; text-align: left; }
+            .input-row td div { justify-content: flex-start; gap: 8px; }
+            .time-inline { flex-direction: column; align-items: stretch; }
+            .time-inline .date-wrapper, .time-inline .time-group { width: 100%; display:flex; flex-direction:column; align-items:flex-start; }
+            .date-wrapper input[type="date"] { width: auto; }
+            .time-group select { min-width: 0; width: auto; }
+            #timezone { width: 100%; margin-bottom: 8px; }
+            #utcClock, #localClock, #utcToTarget { font-size: 1em; }
+        }
     </style>
     <link id="faviconLink" rel="icon" type="image/jpeg">
+    <link rel="apple-touch-icon" href="logo.jpg">
+    <link rel="icon" href="logo.jpg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="RPL Timezone Converter">
 </head>
 <body>
 <div class="header">
@@ -56,61 +88,74 @@
         <option value="">Loading timezones…</option>
     </select>
     <table>
-        <tr>
-            <th></th>
-            <th>Current Time</th>
-            <th>Target Time<br><span style="font-weight:normal;font-size:0.9em;">(set below, 24-hour format)</span></th>
-        </tr>
         <tr class="input-row">
             <th>UTC</th>
-            <td id="utcClock"></td>
             <td>
-                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcDate" style="font-size:0.85em;margin-bottom:4px;">Date</label>
-                        <input type="date" id="targetUtcDate">
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcHour" style="font-size:0.85em;margin-bottom:4px;">Hour</label>
-                        <select id="targetUtcHour" class="target"></select>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcMinute" style="font-size:0.85em;margin-bottom:4px;">Minute</label>
-                        <select id="targetUtcMinute" class="target"></select>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetUtcSecond" style="font-size:0.85em;margin-bottom:4px;">Second</label>
-                        <select id="targetUtcSecond" class="target"></select>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <label style="font-weight:bold;margin-bottom:6px;">Current Time:</label>
+                    <div id="utcClock"></div>
+                </div>
+            </td>
+            <td>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <label style="font-weight:bold;margin-bottom:6px;">Target Time (UTC):</label>
+                    <div class="time-inline" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+                        <div class="date-wrapper" style="display:flex;flex-direction:column;align-items:center;">
+                            <label for="targetUtcDate" style="font-size:0.85em;margin-bottom:6px;">Date</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <input type="date" id="targetUtcDate">
+                                <button type="button" class="cal-btn" onclick="openDatePicker('targetUtcDate')" aria-label="Open date picker">📅</button>
+                            </div>
+                        </div>
+                        <div class="time-group" style="display:flex;flex-direction:column;align-items:center;">
+                            <label style="font-size:0.85em;margin-bottom:6px;">Time</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <select id="targetUtcHour" class="target"></select>
+                                <span class="colon">:</span>
+                                <select id="targetUtcMinute" class="target"></select>
+                                <span class="colon">:</span>
+                                <select id="targetUtcSecond" class="target"></select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </td>
         </tr>
         <tr class="input-row">
             <th>Local</th>
-            <td id="localClock"></td>
             <td>
-                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalDate" style="font-size:0.85em;margin-bottom:4px;">Date</label>
-                        <input type="date" id="targetLocalDate">
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalHour" style="font-size:0.85em;margin-bottom:4px;">Hour</label>
-                        <select id="targetLocalHour" class="target"></select>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalMinute" style="font-size:0.85em;margin-bottom:4px;">Minute</label>
-                        <select id="targetLocalMinute" class="target"></select>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <label for="targetLocalSecond" style="font-size:0.85em;margin-bottom:4px;">Second</label>
-                        <select id="targetLocalSecond" class="target"></select>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <label style="font-weight:bold;margin-bottom:6px;">Current Time:</label>
+                    <div id="localClock"></div>
+                </div>
+            </td>
+            <td>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                    <label style="font-weight:bold;margin-bottom:6px;">Target Time (Local):</label>
+                    <div class="time-inline" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+                        <div class="date-wrapper" style="display:flex;flex-direction:column;align-items:center;">
+                            <label for="targetLocalDate" style="font-size:0.85em;margin-bottom:6px;">Date</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <input type="date" id="targetLocalDate">
+                                <button type="button" class="cal-btn" onclick="openDatePicker('targetLocalDate')" aria-label="Open date picker">📅</button>
+                            </div>
+                        </div>
+                        <div class="time-group" style="display:flex;flex-direction:column;align-items:center;">
+                            <label style="font-size:0.85em;margin-bottom:6px;">Time</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <select id="targetLocalHour" class="target"></select>
+                                <span class="colon">:</span>
+                                <select id="targetLocalMinute" class="target"></select>
+                                <span class="colon">:</span>
+                                <select id="targetLocalSecond" class="target"></select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </td>
         </tr>
         <tr class="input-row">
-            <th colspan="2" style="text-align:right;font-weight:bold;">Time to Target:</th>
+            <th colspan="2" style="text-align:left;font-weight:bold;">Time to Target:</th>
             <td id="utcToTarget" style="font-size:1.2em;font-weight:bold;"></td>
         </tr>
     </table>
@@ -679,6 +724,17 @@
 
     // Populate hour and minute selects with options (24-hour / 0-59)
     function populateTimeSelects() {
+        // add a blank placeholder so the selects are initially unselected
+        const blank = document.createElement('option'); blank.value = ''; blank.text = '--';
+        targetUtcHour.appendChild(blank);
+        targetLocalHour.appendChild(blank.cloneNode(true));
+        const blank2 = document.createElement('option'); blank2.value = ''; blank2.text = '--';
+        targetUtcMinute.appendChild(blank2);
+        targetLocalMinute.appendChild(blank2.cloneNode(true));
+        const blank3 = document.createElement('option'); blank3.value = ''; blank3.text = '--';
+        targetUtcSecond.appendChild(blank3);
+        targetLocalSecond.appendChild(blank3.cloneNode(true));
+
         const hrs = Array.from({length:24}, (_,i) => i);
         const mins = Array.from({length:60}, (_,i) => i);
         const secs = Array.from({length:60}, (_,i) => i);
@@ -693,6 +749,21 @@
     } catch (e) {
         showCompatibilityWarning('Failed to initialize time selects; time input may be limited.');
         console.error(e);
+    }
+
+    // Helper: open native date picker when available
+    function openDatePicker(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        // Preferred modern API
+        if (typeof el.showPicker === 'function') {
+            try { el.showPicker(); return; } catch (e) { /* ignore and fallback */ }
+        }
+        // Some browsers open the picker on click/focus - try both
+        try { el.click(); } catch (e) {}
+        try { el.focus(); } catch (e) {}
+        // final attempt after a tiny delay
+        setTimeout(() => { try { el.focus(); } catch (e) {} }, 50);
     }
 
     // --- timezone labels: compute offset (minutes) for a timezone at a given instant ---
@@ -828,6 +899,26 @@
 
     // run immediately to update option labels
     updateTimezoneOptionLabels();
+
+    // Initialize inputs: default time to 00:00:00 (date left empty)
+    function clearInitialInputs() {
+        if (targetUtcDate) targetUtcDate.value = '';
+        if (targetUtcHour) targetUtcHour.value = '00';
+        if (targetUtcMinute) targetUtcMinute.value = '00';
+        if (targetUtcSecond) targetUtcSecond.value = '00';
+        if (targetLocalDate) targetLocalDate.value = '';
+        if (targetLocalHour) targetLocalHour.value = '00';
+        if (targetLocalMinute) targetLocalMinute.value = '00';
+        if (targetLocalSecond) targetLocalSecond.value = '00';
+        // ensure there's no active canonical target until the user sets one
+        lastTargetUtc = null;
+        updateClocks();
+    }
+
+    // ensure fields are initialized on load
+    try { clearInitialInputs(); } catch (e) {
+        console.warn('Unable to clear initial inputs:', e);
+    }
 
     function updateClocks() {
         // Use epoch ms for consistent arithmetic (always in UTC)

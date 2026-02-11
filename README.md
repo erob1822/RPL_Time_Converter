@@ -30,7 +30,7 @@ A small, self-contained HTML/JS tool that displays UTC and a selected timezone's
 - Try DST boundary dates (spring & fall transitions) for a zone like `America/New_York` to confirm conversions.
 
 ## Development Notes 🧰
-- The main file is `clock.html`. All logic and small assets are in that single file for portability.
+- The main file is `clock.html`. It is now a clone of `docs/index.html` (used for GitHub Pages). Edit `clock.html` to make updates; if you want I can propagate those changes to `docs/index.html` and push them for you.
 - I will not commit changes to your repository unless you explicitly ask me to.
 
 ---
